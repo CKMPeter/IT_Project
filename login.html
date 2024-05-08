@@ -3,42 +3,53 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>my drive signup page</title>
+	<title>my drive login page</title>
 	<link rel="stylesheet" type="text/css" href="assets_signup/css/bootstrap-icons.css">
 	<link rel="stylesheet" type="text/css" href="assets_signup/css/styles.css">
 </head>
 <body>
 
-	
+	<style>
+		
+		.hide{
+			display: none;
+		}
+	</style>
 	<section class="class_1" >
-		<form method="post" enctype="multipart/form-data" class="class_2" >
+		<form onsubmit="login.submit(event)" method="post" enctype="multipart/form-data" class="class_2" >
 			<h1 class="class_3"  >
 				MY DRIVE
-				<br>
 			</h1>
-			<img src="assets_signup\images\woman-coming-other-woman-with-ideas-project_74855-11211.jpg" class="class_4" >
+			<img src="assets_signup/images/woman-coming-other-woman-with-ideas-project_74855-11211.jpg" class="class_4" >
 			<h1 class="class_5"  >
 				LOGIN
 			</h1>
+			<div class="js-error-banner hide" style="background-color:#ffb7b7; color: #7b0000;padding: 10px;text-align: center;">
+				Please fix the errors below!
+			</div>
+
 			<div class="class_6" >
+ 
 				<div class="class_7" >
 					<label class="class_8"  >
 						EMAIL
 					</label>
 					<input placeholder="Enter a valid Email" type="email" name="email" class="class_10" >
 				</div>
+				<small class="error error-email hide" style="color: red;display: block;"></small>
+
 				<div class="class_7" >
 					<label class="class_8"  >
 						PASSWORD
 					</label>
-					<input placeholder="Enter a password" type="text" name="password" class="class_9" >
+					<input placeholder="Enter a password" type="password" name="password" class="class_9" >
 				</div>
+				<small class="error error-password hide" style="color: red;display: block;"></small>
+ 
 			</div>
-
-			<div style="padding: 10px; text-align: center">
+			<div style="padding: 10px;text-align: center;">
 				Dont have an account? <a href="signup.html">Signup here</a>
 			</div>
-
 			<button class="js-button class_11"  >
 				LOGIN
 			</button>
@@ -48,3 +59,91 @@
 </body>
 </html>
 
+<script>
+	
+	const login = {
+
+		uploading: false,
+
+		submit: function(e){
+ 
+ 			e.preventDefault();
+
+ 			if(login.uploading){
+ 				alert("Already uploading. please wait...");
+ 				return;
+ 			}
+
+ 			let button = document.querySelector(".js-button");
+ 			button.innerHTML = `Saving...`;
+ 
+			let myform = new FormData();
+			myform.append('data_type','user_login');
+
+			//get all inputs
+			let inputs = e.currentTarget.querySelectorAll("input,select,teaxtarea");
+			for (var i = 0; i < inputs.length; i++) {
+				myform.append(inputs[i].name,inputs[i].value.trim());
+			}
+
+			login.uploading = true;
+			let xhr = new XMLHttpRequest();
+			xhr.addEventListener('readystatechange',function(){
+
+				if(xhr.readyState == 4)
+				{
+					login.uploading = false;
+					let button = document.querySelector(".js-button");
+ 					button.innerHTML = `LOGIN`;
+
+					if(xhr.status == 200)
+					{
+						//console.log(xhr.responseText);
+	 
+						let obj = JSON.parse(xhr.responseText);
+						document.querySelector(".js-error-banner").classList.add("hide");
+
+						if(obj.success && obj.data_type == "user_login")
+						{
+							alert("Login successful");
+							window.location.href = 'index.html';
+
+						}else{
+
+							//errors
+							let form = document.querySelector("form");
+							
+							//empty old error messages
+							let errors = document.querySelectorAll(".error");
+							document.querySelector(".js-error-banner").classList.remove("hide");
+
+							for (var i = 0; i < errors.length; i++) {
+								errors[i].innerHTML = "";
+								errors[i].classList.add("hide");
+
+							}
+
+							//show new errors
+							for(key in obj.errors){
+
+								let item = document.querySelector(".error-"+key);
+								item.innerHTML = obj.errors[key];
+								item.classList.remove("hide");
+							}
+						}
+
+					}else{
+						console.log(xhr.responseText);
+					}
+
+				}
+			});
+
+			xhr.open('post','api.php',true);
+			xhr.send(myform);
+
+		},
+
+	}
+
+</script>
